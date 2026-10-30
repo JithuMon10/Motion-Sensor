@@ -41,7 +41,10 @@
     <div id="statusCard" class="relative overflow-hidden rounded-2xl p-6 border transition-all duration-300 bg-slate-900 border-slate-800">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Current Security State</span>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Current Security State</span>
+            <span id="countdownBadge" class="hidden text-[11px] font-mono px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">Auto-reset in 5s</span>
+          </div>
           <div class="flex items-center space-x-3 mt-1">
             <span id="statusIcon" class="text-3xl">🟢</span>
             <h2 id="statusTitle" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400">
@@ -49,13 +52,13 @@
             </h2>
           </div>
           <p id="statusDesc" class="text-sm text-slate-400 mt-1">
-            PIR motion sensor active. All parameters normal.
+            PIR motion sensor active. System monitoring for intrusion.
           </p>
         </div>
 
         <div class="flex flex-wrap gap-2">
           <button id="resetBtn" onclick="resetAlarm()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">
-            🔄 Reset Status
+            🔄 Reset / Re-Arm
           </button>
           <button onclick="simulateMotionAlert()" class="px-4 py-2.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-xs font-semibold text-indigo-400 border border-indigo-500/30 transition">
             🧪 Test Alert
@@ -109,21 +112,16 @@
 
   <script>
     let audioCtx = null;
-    let isAlarming = false;
+    let alarmEndTime = 0;
 
-    // Web Audio Synthesizer Beep
     function playAlarmSound() {
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
         gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
@@ -131,9 +129,7 @@
         gain.connect(audioCtx.destination);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.35);
-      } catch (e) {
-        // Audio might be blocked until user clicks page
-      }
+      } catch (e) {}
     }
 
     async function pollAlerts() {
@@ -141,7 +137,6 @@
         const response = await fetch('/api/alert');
         if (!response.ok) return;
         const data = await response.json();
-
         updateUI(data.status, data.alerts);
       } catch (err) {
         console.error("Polling error:", err);
@@ -155,24 +150,31 @@
       const desc = document.getElementById('statusDesc');
       const container = document.getElementById('alertsContainer');
       const logCount = document.getElementById('logCount');
+      const badge = document.getElementById('countdownBadge');
 
       if (status && status.state === "ALARM") {
-        if (!isAlarming) {
+        if (alarmEndTime === 0) {
           playAlarmSound();
-          isAlarming = true;
+          alarmEndTime = Date.now() + 5000;
         }
+
+        const remainingSeconds = Math.max(1, Math.ceil((alarmEndTime - Date.now()) / 1000));
+        badge.classList.remove('hidden');
+        badge.innerText = `Auto-reset in ${remainingSeconds}s`;
+
         card.className = "relative overflow-hidden rounded-2xl p-6 border transition-all duration-300 bg-red-950/40 border-red-500/50 shadow-lg shadow-red-950/50 animate-pulse";
         title.innerText = "🚨 MOTION DETECTED!";
         title.className = "text-2xl sm:text-3xl font-extrabold tracking-tight text-red-400";
         icon.innerText = "⚠️";
         desc.innerText = "Triggered: " + (status.lastTriggered || "Just now") + " by " + status.device;
       } else {
-        isAlarming = false;
+        alarmEndTime = 0;
+        badge.classList.add('hidden');
         card.className = "relative overflow-hidden rounded-2xl p-6 border transition-all duration-300 bg-slate-900 border-slate-800";
         title.innerText = "ARMED - SECURE";
         title.className = "text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-400";
         icon.innerText = "🟢";
-        desc.innerText = "PIR motion sensor active. All parameters normal.";
+        desc.innerText = "PIR motion sensor active. System monitoring for intrusion.";
       }
 
       logCount.innerText = `${alerts.length} events`;
@@ -200,6 +202,7 @@
 
     async function resetAlarm() {
       try {
+        alarmEndTime = 0;
         await fetch('/api/alert', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -213,6 +216,7 @@
 
     async function simulateMotionAlert() {
       try {
+        alarmEndTime = Date.now() + 5000;
         await fetch('/api/alert', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -224,10 +228,9 @@
       }
     }
 
-    // Auto-poll every 2 seconds
-    setInterval(pollAlerts, 2000);
+    // Auto-poll every 1.5s
+    setInterval(pollAlerts, 1500);
     pollAlerts();
   </script>
 </body>
 </html>
-

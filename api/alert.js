@@ -1,13 +1,12 @@
-// In-memory alert store for demonstration
 let alertHistory = [];
 let currentStatus = {
   state: "SECURE", // "SECURE" or "ALARM"
   lastTriggered: null,
+  triggeredAt: 0,
   device: "STM32F411CEU6"
 };
 
 export default function handler(req, res) {
-  // Set CORS headers
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS,PATCH,DELETE,POST,PUT");
@@ -21,7 +20,7 @@ export default function handler(req, res) {
     return;
   }
 
-  // POST: Trigger alert from ESP32 or clear alarm from dashboard
+  // POST: Trigger alert or manual reset
   if (req.method === "POST") {
     const body = req.body || {};
 
@@ -30,12 +29,12 @@ export default function handler(req, res) {
       return res.status(200).json({ success: true, message: "Alarm cleared", status: currentStatus });
     }
 
-    // Trigger Motion Alert
+    const now = Date.now();
     const timestamp = new Date().toLocaleTimeString("en-US", { hour12: true });
     const fullDate = new Date().toLocaleString();
 
     const alertEvent = {
-      id: Date.now(),
+      id: now,
       time: timestamp,
       dateTime: fullDate,
       device: body.device || "STM32F411CEU6",
@@ -45,23 +44,27 @@ export default function handler(req, res) {
 
     currentStatus.state = "ALARM";
     currentStatus.lastTriggered = fullDate;
+    currentStatus.triggeredAt = now;
     currentStatus.device = alertEvent.device;
 
     alertHistory.unshift(alertEvent);
-    if (alertHistory.length > 25) alertHistory.pop(); // Keep last 25
+    if (alertHistory.length > 25) alertHistory.pop();
 
     return res.status(200).json({
       success: true,
-      message: "Security alert logged successfully",
+      message: "Security alert logged",
       alert: alertEvent,
       status: currentStatus
     });
   }
 
-  // GET: Fetch status and log
+  // Auto-reset state back to SECURE after 5 seconds (5000ms)
+  if (currentStatus.state === "ALARM" && (Date.now() - currentStatus.triggeredAt) > 5000) {
+    currentStatus.state = "SECURE";
+  }
+
   return res.status(200).json({
     status: currentStatus,
     alerts: alertHistory
   });
 }
-
