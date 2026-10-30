@@ -1,0 +1,9 @@
+{
+  "name": "stm32-security-dashboard",
+  "version": "1.0.0",
+  "description": "Smart Home Security System dashboard powered by STM32F411 and ESP32",
+  "scripts": {
+    "start": "npx serve public"
+  }
+}
+
