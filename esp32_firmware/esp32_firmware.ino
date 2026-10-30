@@ -3,7 +3,7 @@
  * Project: Smart Home Security System (Network Gateway)
  * Board:   ESP32 (or ESP8266)
  * Role:    Receives UART triggers from STM32F411, forwards to Vercel & Phone
- * Comms:   UART2 (RX2 = GPIO 16, TX2 = GPIO 17) or Serial (GPIO 3 RX, GPIO 1 TX)
+ * Comms:   UART2 (RX2 = GPIO 16, TX2 = GPIO 17)
  * =========================================================================
  */
 
@@ -16,14 +16,13 @@ const char* WIFI_SSID     = "YOUR_WIFI_NAME";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 
 // -------- 2. YOUR VERCEL API URL --------
-// Replace with your deployed Vercel domain (e.g. "https://stm32-security.vercel.app/api/alert")
-const char* VERCEL_URL    = "https://YOUR_VERCEL_DOMAIN.vercel.app/api/alert";
+const char* VERCEL_URL    = "https://motionsensorgasp.vercel.app/api/alert";
 
 // -------- 3. PHONE NOTIFICATION (ntfy.sh) --------
 // Install "ntfy" app on your phone and subscribe to this exact topic name:
 const char* NTFY_TOPIC    = "stm32-smart-security-alert";
 
-// Hardware Serial on ESP32 to talk to STM32 (Using RX=16, TX=17 or standard Serial)
+// Hardware Serial on ESP32 to talk to STM32 (Using RX=16, TX=17)
 HardwareSerial stm32Serial(2); // UART2: RX2 = GPIO 16, TX2 = GPIO 17
 
 void setup() {
@@ -79,10 +78,6 @@ void sendPhoneNotification() {
 // 2. Send alert event to Vercel Web Dashboard
 void sendVercelAlert() {
   if (WiFi.status() != WL_CONNECTED) return;
-  if (String(VERCEL_URL).indexOf("YOUR_VERCEL_DOMAIN") != -1) {
-    Serial.println("[ESP32] Note: Update VERCEL_URL with your actual Vercel link.");
-    return;
-  }
 
   WiFiClientSecure client;
   client.setInsecure();
@@ -114,4 +109,3 @@ void loop() {
     }
   }
 }
-

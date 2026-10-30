@@ -81,3 +81,4 @@ An IoT-based Smart Security and Intruder Detection System. The project uses an *
 ### 4. Phone Notifications (ntfy)
 1. Install **ntfy** on iOS or Android.
 2. Subscribe to the topic: `stm32-smart-security-alert`.
+
