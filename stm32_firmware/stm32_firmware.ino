@@ -1,61 +1,73 @@
 /*
  * =========================================================================
- * Project: Smart Home Security System (Syllabus Core)
- * Board:   STM32F411CEU6 ("Black Pill")
- * Inputs:  PIR Motion Sensor (PA0)
- * Outputs: Active Buzzer (PA1)
- * Comms:   Hardware UART Serial2 (PA2 = TX, PA3 = RX) connected to ESP32
+ * STM32F411 Diagnostic & Security Firmware
+ * - Tests onboard LED (PC13)
+ * - Tests Buzzer (handles both Active & Passive buzzers)
+ * - Tests PIR Sensor input on PA0
  * =========================================================================
  */
 
-#define PIR_PIN       PA0   // PIR Motion Sensor Output connected here
-#define BUZZER_PIN    PA1   // Buzzer connected here (+ Diode 1N4007 across terminals)
-
-// Serial2 is natively mapped to PA2 (TX) and PA3 (RX) on STM32F411
-#define SerialESP Serial2
+#define PIR_PIN       PA0
+#define BUZZER_PIN    PA1
+#define LED_PIN       PC13    // Onboard Blue LED on STM32 Black Pill
+#define SerialESP     Serial2 // PA2 (TX), PA3 (RX)
 
 unsigned long lastAlertTime = 0;
-const unsigned long alertCooldown = 8000; // 8 seconds cooldown between triggers
+const unsigned long alertCooldown = 5000;
+
+void beepBuzzer() {
+  // Test 1: Direct DC pulse (for Active Buzzer)
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(150);
+  digitalWrite(BUZZER_PIN, LOW);
+  delay(50);
+
+  // Test 2: Frequency tone (for Passive Buzzer)
+  tone(BUZZER_PIN, 2400, 200);
+  delay(200);
+  noTone(BUZZER_PIN);
+}
 
 void setup() {
   pinMode(PIR_PIN, INPUT);
   pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW);
+  pinMode(LED_PIN, OUTPUT);
 
-  // Debug monitor via PC USB
+  // Turn ON onboard LED to prove the STM32 is alive and running code
+  digitalWrite(LED_PIN, LOW); // On Black Pill, LOW turns onboard LED ON
+
   Serial.begin(115200);
-
-  // Serial link to ESP32 module
   SerialESP.begin(9600);
 
-  // Allow PIR sensor ~2-3 seconds to settle
-  delay(2500);
-  Serial.println("[STM32] Security System Armed & Monitoring...");
-}
+  // Startup Test: Beep the buzzer ONCE at startup to test if buzzer works!
+  beepBuzzer();
+  delay(500);
+  digitalWrite(LED_PIN, HIGH); // Turn off LED after test
 
-void triggerAlarm() {
-  Serial.println("[STM32] >>> MOTION DETECTED! Sending alert to ESP32 <<<");
-
-  // 1. Send UART message to ESP32
-  SerialESP.println("ALERT:MOTION");
-
-  // 2. Beep buzzer 3 times
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(BUZZER_PIN, HIGH);
-    delay(150);
-    digitalWrite(BUZZER_PIN, LOW);
-    delay(100);
-  }
+  Serial.println("[STM32] Self-test complete. Monitoring PA0...");
 }
 
 void loop() {
   int motion = digitalRead(PIR_PIN);
 
+  // Mirror PIR sensor state directly to onboard LED (Instant visual check)
   if (motion == HIGH) {
+    digitalWrite(LED_PIN, LOW); // LED ON when motion is detected
+    
     if (millis() - lastAlertTime > alertCooldown) {
-      triggerAlarm();
+      Serial.println("[STM32] >>> MOTION DETECTED! <<<");
+      
+      // Trigger ESP32
+      SerialESP.println("ALERT:MOTION");
+
+      // Beep
+      beepBuzzer();
+      
       lastAlertTime = millis();
     }
+  } else {
+    digitalWrite(LED_PIN, HIGH); // LED OFF when clear
   }
-}
 
+  delay(50);
+}

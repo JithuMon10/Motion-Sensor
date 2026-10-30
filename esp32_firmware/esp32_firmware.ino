@@ -12,8 +12,8 @@
 #include <WiFiClientSecure.h>
 
 // -------- 1. ENTER YOUR WIFI CREDENTIALS HERE --------
-const char* WIFI_SSID     = "YOUR_WIFI_NAME";
-const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
+const char* WIFI_SSID     = "jalibi";
+const char* WIFI_PASSWORD = "godislove";
 
 // -------- 2. YOUR VERCEL API URL --------
 const char* VERCEL_URL    = "https://motionsensorgasp.vercel.app/api/alert";
