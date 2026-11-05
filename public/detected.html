@@ -1,41 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Smart Home Security Dashboard | Report Screenshot Mode</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
-    @keyframes subtlePulse {
-      0%, 100% { box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.4); }
-      50% { box-shadow: 0 0 40px 5px rgba(239, 68, 68, 0.6); }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    @keyframes subtlePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 40px 5px rgba(239, 68, 68, 0.6);
+      }
+    }
+
     .alarm-glow {
       animation: subtlePulse 2s infinite ease-in-out;
     }
   </style>
 </head>
+
 <body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col justify-between">
 
   <!-- Report Controls Bar (Can be hidden before taking screenshot) -->
-  <div id="controlsBanner" class="bg-indigo-950/80 border-b border-indigo-800/80 px-4 py-2.5 flex items-center justify-between text-xs text-indigo-200">
+  <div id="controlsBanner"
+    class="bg-indigo-950/80 border-b border-indigo-800/80 px-4 py-2.5 flex items-center justify-between text-xs text-indigo-200">
     <div class="flex items-center space-x-2">
       <span class="font-bold uppercase tracking-wider text-indigo-300">📸 Report Screenshot Helper:</span>
       <span>Click buttons to toggle states for your report screenshots</span>
     </div>
     <div class="flex items-center space-x-2">
-      <button onclick="setAlarmState()" class="px-2.5 py-1 rounded bg-red-600/40 hover:bg-red-600/60 border border-red-500/50 text-red-200 font-semibold transition">
+      <button onclick="setAlarmState()"
+        class="px-2.5 py-1 rounded bg-red-600/40 hover:bg-red-600/60 border border-red-500/50 text-red-200 font-semibold transition">
         🚨 Show "Motion Detected" State
       </button>
-      <button onclick="setSecureState()" class="px-2.5 py-1 rounded bg-emerald-600/40 hover:bg-emerald-600/60 border border-emerald-500/50 text-emerald-200 font-semibold transition">
+      <button onclick="setSecureState()"
+        class="px-2.5 py-1 rounded bg-emerald-600/40 hover:bg-emerald-600/60 border border-emerald-500/50 text-emerald-200 font-semibold transition">
         🟢 Show "Armed / Secure" State
       </button>
-      <button onclick="hideControls()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 font-medium transition" title="Hides this bar for a clean screenshot">
+      <button onclick="hideControls()"
+        class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-300 font-medium transition"
+        title="Hides this bar for a clean screenshot">
         ✕ Hide This Bar
       </button>
     </div>
@@ -45,7 +68,8 @@
   <header class="border-b border-slate-800 bg-[#0f172a]/80 backdrop-blur sticky top-0 z-50">
     <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl font-bold shadow-sm">
+        <div
+          class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl font-bold shadow-sm">
           🛡️
         </div>
         <div>
@@ -53,7 +77,8 @@
           <p class="text-xs text-slate-400 mono">Controller: STM32F411CEU6 • Gateway: ESP32-WROOM</p>
         </div>
       </div>
-      <div id="livePill" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30">
+      <div id="livePill"
+        class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30">
         <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
         <span id="liveText" class="text-xs font-bold text-red-400 tracking-wider">ALERT ACTIVE</span>
       </div>
@@ -64,12 +89,14 @@
   <main class="max-w-4xl w-full mx-auto px-4 py-6 flex-1 space-y-6">
 
     <!-- Status Card (Frozen in Active Alarm State by Default) -->
-    <div id="statusCard" class="relative overflow-hidden rounded-2xl p-6 border transition-all duration-300 bg-red-950/40 border-red-500/50 alarm-glow">
+    <div id="statusCard"
+      class="relative overflow-hidden rounded-2xl p-6 border transition-all duration-300 bg-red-950/40 border-red-500/50 alarm-glow">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center space-x-2">
             <span class="text-xs font-bold uppercase tracking-widest text-slate-300">Current Security State</span>
-            <span id="countdownBadge" class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40">
+            <span id="countdownBadge"
+              class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40">
               Auto-reset in 4s
             </span>
           </div>
@@ -80,15 +107,18 @@
             </h2>
           </div>
           <p id="statusDesc" class="text-sm text-slate-300 mt-1.5">
-            Intruder detected within <span class="font-bold text-white mono">34.2 cm</span> by HC-SR04 sensor. Buzzer activated.
+            Intruder detected within <span class="font-bold text-white mono">34.2 cm</span> by HC-SR04 sensor. Buzzer
+            activated.
           </p>
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <button class="px-4 py-2.5 rounded-xl bg-slate-800/90 text-xs font-semibold text-slate-300 border border-slate-700 shadow-sm">
+          <button
+            class="px-4 py-2.5 rounded-xl bg-slate-800/90 text-xs font-semibold text-slate-300 border border-slate-700 shadow-sm">
             🔄 Reset / Re-Arm
           </button>
-          <button class="px-4 py-2.5 rounded-xl bg-indigo-600/30 text-xs font-semibold text-indigo-300 border border-indigo-500/40 shadow-sm">
+          <button
+            class="px-4 py-2.5 rounded-xl bg-indigo-600/30 text-xs font-semibold text-indigo-300 border border-indigo-500/40 shadow-sm">
             🧪 Test Alert
           </button>
         </div>
@@ -125,7 +155,7 @@
       </div>
 
       <div id="alertsContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-        
+
         <!-- Event 1 (Just Now) -->
         <div class="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-xs">
           <div class="flex items-center space-x-2.5">
@@ -142,7 +172,8 @@
         </div>
 
         <!-- Event 2 -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs">
+        <div
+          class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs">
           <div class="flex items-center space-x-2.5">
             <span class="w-2 h-2 rounded-full bg-slate-500"></span>
             <div>
@@ -157,7 +188,8 @@
         </div>
 
         <!-- Event 3 -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs">
+        <div
+          class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs">
           <div class="flex items-center space-x-2.5">
             <span class="w-2 h-2 rounded-full bg-slate-500"></span>
             <div>
@@ -172,7 +204,8 @@
         </div>
 
         <!-- Event 4 (System Initialization) -->
-        <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs">
+        <div
+          class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700/60 text-xs">
           <div class="flex items-center space-x-2.5">
             <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
             <div>
@@ -244,4 +277,5 @@
     }
   </script>
 </body>
+
 </html>
